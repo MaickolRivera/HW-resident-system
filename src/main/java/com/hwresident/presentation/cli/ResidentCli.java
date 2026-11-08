@@ -8,16 +8,17 @@ import java.util.Scanner;
 public class ResidentCli {
     private final RegisterResidentUseCase register;
     private final ListResidentsUseCase list;
+    private final Scanner in;
 
-    public ResidentCli(RegisterResidentUseCase register, ListResidentsUseCase list) {
+    public ResidentCli(RegisterResidentUseCase register, ListResidentsUseCase list, Scanner in) {
         this.register = register;
         this.list = list;
+        this.in = in;
     }
 
     public void run() {
-        Scanner in = new Scanner(System.in);
         while (true) {
-            System.out.println("\n1) Registrar residente  2) Listar residentes  0) Salir");
+            System.out.println("\n1) Registrar residente  2) Listar residentes  0) Volver");
             System.out.print("> ");
             if (!in.hasNextLine()) return;
             String option = in.nextLine().trim();
