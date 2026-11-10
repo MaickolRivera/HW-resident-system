@@ -2,6 +2,7 @@ package com.hwresident.presentation.cli;
 
 import java.util.Scanner;
 
+/** Modo consola básico (registro de residentes y visitantes). La funcionalidad completa está en la GUI. */
 public class MainMenuCli {
     private final ResidentCli residents;
     private final VisitorCli visitors;

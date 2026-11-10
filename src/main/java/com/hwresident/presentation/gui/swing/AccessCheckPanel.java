@@ -29,7 +29,7 @@ final class AccessCheckPanel extends JPanel implements AccessCheckView {
         setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
         var form = Ui.form();
-        Ui.addRow(form, 0, "Documento del visitante", document);
+        Ui.addRow(form, 0, "Documento", document);
         var now = new JButton("Ahora");
         now.addActionListener(e -> moment.setValue(LocalDateTime.now()));
         var momentRow = new JPanel(new BorderLayout(8, 0));

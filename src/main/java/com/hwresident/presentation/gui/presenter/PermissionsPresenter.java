@@ -2,17 +2,19 @@ package com.hwresident.presentation.gui.presenter;
 
 import com.hwresident.application.usecase.GrantAccessPermissionUseCase;
 import com.hwresident.application.usecase.ListAccessPermissionsUseCase;
+import com.hwresident.application.usecase.ListApartmentsUseCase;
+import com.hwresident.application.usecase.ListExternalPersonsUseCase;
 import com.hwresident.application.usecase.ListResidentsUseCase;
-import com.hwresident.application.usecase.ListVisitorsUseCase;
 import com.hwresident.application.usecase.RevokeAccessPermissionUseCase;
 import com.hwresident.domain.exception.DomainException;
 import com.hwresident.domain.model.AccessPermission;
+import com.hwresident.domain.model.Apartment;
+import com.hwresident.domain.model.ExternalPerson;
 import com.hwresident.domain.model.Resident;
-import com.hwresident.domain.model.Visitor;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class PermissionsPresenter {
@@ -20,7 +22,8 @@ public class PermissionsPresenter {
 
     private final PermissionsView view;
     private final ListResidentsUseCase listResidents;
-    private final ListVisitorsUseCase listVisitors;
+    private final ListExternalPersonsUseCase listExternals;
+    private final ListApartmentsUseCase listApartments;
     private final GrantAccessPermissionUseCase grant;
     private final RevokeAccessPermissionUseCase revoke;
     private final ListAccessPermissionsUseCase listPermissions;
@@ -28,14 +31,16 @@ public class PermissionsPresenter {
 
     public PermissionsPresenter(PermissionsView view,
                                 ListResidentsUseCase listResidents,
-                                ListVisitorsUseCase listVisitors,
+                                ListExternalPersonsUseCase listExternals,
+                                ListApartmentsUseCase listApartments,
                                 GrantAccessPermissionUseCase grant,
                                 RevokeAccessPermissionUseCase revoke,
                                 ListAccessPermissionsUseCase listPermissions,
                                 Clock clock) {
         this.view = view;
         this.listResidents = listResidents;
-        this.listVisitors = listVisitors;
+        this.listExternals = listExternals;
+        this.listApartments = listApartments;
         this.grant = grant;
         this.revoke = revoke;
         this.listPermissions = listPermissions;
@@ -47,8 +52,8 @@ public class PermissionsPresenter {
         view.showResidentOptions(listResidents.execute().stream()
                 .map(r -> new PersonOption(r.documentNumber(), residentLabel(r)))
                 .toList());
-        view.showVisitorOptions(listVisitors.execute().stream()
-                .map(v -> new PersonOption(v.documentNumber(), visitorLabel(v)))
+        view.showVisitorOptions(listExternals.execute().stream()
+                .map(v -> new PersonOption(v.documentNumber(), externalLabel(v)))
                 .toList());
         refreshTable();
     }
@@ -93,16 +98,19 @@ public class PermissionsPresenter {
     }
 
     private void refreshTable() {
-        Map<java.util.UUID, String> residentNames = listResidents.execute().stream()
+        Map<UUID, String> residentNames = listResidents.execute().stream()
                 .collect(Collectors.toMap(Resident::id, PermissionsPresenter::residentLabel));
-        Map<java.util.UUID, String> visitorNames = listVisitors.execute().stream()
-                .collect(Collectors.toMap(Visitor::id, PermissionsPresenter::visitorLabel));
+        Map<UUID, String> externalNames = listExternals.execute().stream()
+                .collect(Collectors.toMap(ExternalPerson::id, PermissionsPresenter::externalLabel));
+        Map<UUID, String> apartmentNames = listApartments.execute().stream()
+                .collect(Collectors.toMap(Apartment::id, Apartment::label));
         var now = LocalDateTime.now(clock);
         view.showPermissions(listPermissions.execute().stream()
                 .map(p -> new PermissionRow(
                         p.id(),
                         residentNames.getOrDefault(p.residentId(), UNKNOWN),
-                        visitorNames.getOrDefault(p.visitorId(), UNKNOWN),
+                        externalNames.getOrDefault(p.externalId(), UNKNOWN),
+                        apartmentNames.getOrDefault(p.apartmentId(), UNKNOWN),
                         p.validFrom(),
                         p.validUntil(),
                         statusOf(p, now)))
@@ -117,10 +125,10 @@ public class PermissionsPresenter {
     }
 
     private static String residentLabel(Resident r) {
-        return r.fullName() + " (" + r.documentNumber() + ") - " + r.unit();
+        return r.displayName() + " - " + r.apartment().label();
     }
 
-    private static String visitorLabel(Visitor v) {
-        return v.fullName() + " (" + v.documentNumber() + ")";
+    private static String externalLabel(ExternalPerson p) {
+        return p.displayName() + " - " + p.typeLabel();
     }
 }

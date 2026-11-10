@@ -1,12 +1,15 @@
 package com.hwresident.presentation.gui.swing;
 
+import com.hwresident.presentation.gui.presenter.ApartmentOption;
 import com.hwresident.presentation.gui.presenter.ResidentRow;
 import com.hwresident.presentation.gui.presenter.ResidentsPresenter;
 import com.hwresident.presentation.gui.presenter.ResidentsView;
 import java.awt.BorderLayout;
 import java.util.List;
+import java.util.Optional;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -16,11 +19,11 @@ import javax.swing.JTextField;
 final class ResidentsPanel extends JPanel implements ResidentsView {
     private final JTextField name = new JTextField(24);
     private final JTextField document = new JTextField(24);
-    private final JTextField unit = new JTextField(24);
+    private final JComboBox<ApartmentOption> apartment = new JComboBox<>();
     private final FeedbackLabel feedback = new FeedbackLabel();
     private final RowTableModel<ResidentRow> model = new RowTableModel<>(
-            List.of("Nombre", "Documento", "Unidad"),
-            List.of(ResidentRow::fullName, ResidentRow::documentNumber, ResidentRow::unit));
+            List.of("Nombre", "Documento", "Apartamento"),
+            List.of(ResidentRow::fullName, ResidentRow::documentNumber, ResidentRow::apartment));
     private ResidentsPresenter presenter;
 
     ResidentsPanel() {
@@ -30,10 +33,9 @@ final class ResidentsPanel extends JPanel implements ResidentsView {
         var form = Ui.form();
         Ui.addRow(form, 0, "Nombre completo", name);
         Ui.addRow(form, 1, "Documento", document);
-        Ui.addRow(form, 2, "Unidad", unit);
+        Ui.addRow(form, 2, "Apartamento", apartment);
         var register = new JButton("Registrar residente");
         register.addActionListener(e -> presenter.onRegister());
-        unit.addActionListener(e -> presenter.onRegister());
 
         var north = new JPanel(new BorderLayout(0, 8));
         north.add(form, BorderLayout.NORTH);
@@ -57,14 +59,20 @@ final class ResidentsPanel extends JPanel implements ResidentsView {
 
     @Override public String fullName() { return name.getText(); }
     @Override public String documentNumber() { return document.getText(); }
-    @Override public String unit() { return unit.getText(); }
+    @Override public Optional<ApartmentOption> selectedApartment() { return Optional.ofNullable((ApartmentOption) apartment.getSelectedItem()); }
+
+    @Override
+    public void showApartmentOptions(List<ApartmentOption> options) {
+        Combos.fill(apartment, options, ApartmentOption::id, false);
+    }
+
     @Override public void showResidents(List<ResidentRow> rows) { model.setRows(rows); }
 
     @Override
     public void clearForm() {
         name.setText("");
         document.setText("");
-        unit.setText("");
+        apartment.setSelectedIndex(-1);
         name.requestFocusInWindow();
     }
 

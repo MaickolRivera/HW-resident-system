@@ -4,19 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.hwresident.application.usecase.GrantAccessPermissionUseCase;
+import com.hwresident.TestData;
 import com.hwresident.application.usecase.ListAccessPermissionsUseCase;
+import com.hwresident.application.usecase.ListApartmentsUseCase;
+import com.hwresident.application.usecase.ListExternalPersonsUseCase;
 import com.hwresident.application.usecase.ListResidentsUseCase;
-import com.hwresident.application.usecase.ListVisitorsUseCase;
-import com.hwresident.application.usecase.RegisterResidentUseCase;
-import com.hwresident.application.usecase.RegisterVisitorUseCase;
 import com.hwresident.application.usecase.RevokeAccessPermissionUseCase;
-import com.hwresident.infrastructure.persistence.InMemoryAccessPermissionRepository;
-import com.hwresident.infrastructure.persistence.InMemoryResidentRepository;
-import com.hwresident.infrastructure.persistence.InMemoryVisitorRepository;
-import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,8 +18,7 @@ import org.junit.jupiter.api.Test;
 
 class PermissionsPresenterTest {
 
-    private static final LocalDateTime NOW = LocalDateTime.of(2026, 11, 9, 12, 0);
-    private static final Clock CLOCK = Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneOffset.UTC);
+    private static final LocalDateTime NOW = TestData.NOW;
 
     private static class FakeView implements PermissionsView {
         Optional<PersonOption> resident = Optional.empty();
@@ -55,37 +48,34 @@ class PermissionsPresenterTest {
 
     @BeforeEach
     void setUp() {
-        var residents = new InMemoryResidentRepository();
-        var visitors = new InMemoryVisitorRepository();
-        var permissions = new InMemoryAccessPermissionRepository();
-        new RegisterResidentUseCase(residents).execute("Ana Pérez", "123", "Torre 1 - 101");
-        new RegisterVisitorUseCase(visitors).execute("Carlos Ruiz", "987");
-
+        var data = new TestData();
         view = new FakeView();
         presenter = new PermissionsPresenter(view,
-                new ListResidentsUseCase(residents), new ListVisitorsUseCase(visitors),
-                new GrantAccessPermissionUseCase(residents, visitors, permissions),
-                new RevokeAccessPermissionUseCase(permissions),
-                new ListAccessPermissionsUseCase(permissions), CLOCK);
+                new ListResidentsUseCase(data.persons), new ListExternalPersonsUseCase(data.persons),
+                new ListApartmentsUseCase(data.apartments), data.grant(),
+                new RevokeAccessPermissionUseCase(data.permissions),
+                new ListAccessPermissionsUseCase(data.permissions), data.clock);
         presenter.onShow();
         view.resident = Optional.of(view.residentOptions.get(0));
         view.visitor = Optional.of(view.visitorOptions.get(0));
     }
 
     @Test
-    void onShowCargaLasOpciones() {
+    void onShowCargaResidentesYTodosLosExternos() {
         assertEquals("123", view.residentOptions.get(0).documentNumber());
-        assertEquals("Carlos Ruiz (987)", view.visitorOptions.get(0).label());
+        assertEquals(List.of("Carlos Ruiz (987) - Visitante", "Diana Torres (300) - Domiciliario"),
+                view.visitorOptions.stream().map(PersonOption::label).toList());
     }
 
     @Test
-    void otorgaPermisoVigenteConNombresResueltos() {
+    void otorgaPermisoVigenteConNombresYApartamentoResueltos() {
         presenter.onGrant();
 
         assertEquals("Permiso otorgado", view.success);
         var row = view.rows.get(0);
         assertEquals("Ana Pérez (123) - Torre 1 - 101", row.residentLabel());
-        assertEquals("Carlos Ruiz (987)", row.visitorLabel());
+        assertEquals("Carlos Ruiz (987) - Visitante", row.visitorLabel());
+        assertEquals("Torre 1 - 101", row.apartmentLabel());
         assertEquals(PermissionStatus.ACTIVE, row.status());
     }
 

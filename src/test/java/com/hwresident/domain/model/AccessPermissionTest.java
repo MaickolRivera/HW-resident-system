@@ -13,9 +13,10 @@ class AccessPermissionTest {
 
     private static final LocalDateTime FROM = LocalDateTime.of(2026, 11, 7, 10, 0);
     private static final LocalDateTime UNTIL = LocalDateTime.of(2026, 11, 7, 18, 0);
+    private static final UUID APARTMENT = UUID.randomUUID();
 
     private AccessPermission permission() {
-        return AccessPermission.grant(UUID.randomUUID(), UUID.randomUUID(), FROM, UNTIL);
+        return AccessPermission.grant(UUID.randomUUID(), UUID.randomUUID(), APARTMENT, FROM, UNTIL);
     }
 
     @Test
@@ -28,6 +29,14 @@ class AccessPermissionTest {
         var p = permission();
         assertFalse(p.allowsEntryAt(FROM.minusMinutes(1)));
         assertFalse(p.allowsEntryAt(UNTIL.plusMinutes(1)));
+    }
+
+    @Test
+    void soloPermiteIngresoAlApartamentoAutorizado() {
+        var p = permission();
+        var noon = LocalDateTime.of(2026, 11, 7, 12, 0);
+        assertTrue(p.allowsEntryTo(APARTMENT, noon));
+        assertFalse(p.allowsEntryTo(UUID.randomUUID(), noon));
     }
 
     @Test
@@ -47,6 +56,6 @@ class AccessPermissionTest {
     @Test
     void rechazaRangoInvalido() {
         assertThrows(DomainException.class,
-                () -> AccessPermission.grant(UUID.randomUUID(), UUID.randomUUID(), UNTIL, FROM));
+                () -> AccessPermission.grant(UUID.randomUUID(), UUID.randomUUID(), APARTMENT, UNTIL, FROM));
     }
 }

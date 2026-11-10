@@ -6,3 +6,4 @@ target/
 .vscode/
 nbproject/private/
 .DS_Store
+datos/
