@@ -8,6 +8,7 @@ public record PermissionRow(
         UUID id,
         String residentLabel,
         String visitorLabel,
+        String apartmentLabel,
         LocalDateTime validFrom,
         LocalDateTime validUntil,
         PermissionStatus status) {}

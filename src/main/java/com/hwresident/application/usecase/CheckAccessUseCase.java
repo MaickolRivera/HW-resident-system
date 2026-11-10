@@ -1,22 +1,29 @@
 package com.hwresident.application.usecase;
 
+import com.hwresident.domain.model.ExternalPerson;
+import com.hwresident.domain.model.Resident;
 import com.hwresident.domain.repository.AccessPermissionRepository;
-import com.hwresident.domain.repository.VisitorRepository;
+import com.hwresident.domain.repository.PersonRepository;
 import java.time.LocalDateTime;
 
+/** Consulta (sin registrar nada) si una persona puede entrar en un momento dado. */
 public class CheckAccessUseCase {
-    private final VisitorRepository visitors;
+    private final PersonRepository persons;
     private final AccessPermissionRepository permissions;
 
-    public CheckAccessUseCase(VisitorRepository visitors, AccessPermissionRepository permissions) {
-        this.visitors = visitors;
+    public CheckAccessUseCase(PersonRepository persons, AccessPermissionRepository permissions) {
+        this.persons = persons;
         this.permissions = permissions;
     }
 
-    public boolean execute(String visitorDocument, LocalDateTime moment) {
-        return visitors.findByDocumentNumber(visitorDocument)
-                .map(visitor -> permissions.findByVisitorId(visitor.id()).stream()
-                        .anyMatch(permission -> permission.allowsEntryAt(moment)))
+    public boolean execute(String document, LocalDateTime moment) {
+        return persons.findByDocumentNumber(document)
+                .map(person -> switch (person) {
+                    case Resident r -> true;
+                    case ExternalPerson e -> permissions.findByExternalId(e.id()).stream()
+                            .anyMatch(permission -> permission.allowsEntryAt(moment));
+                    default -> false;
+                })
                 .orElse(false);
     }
 }

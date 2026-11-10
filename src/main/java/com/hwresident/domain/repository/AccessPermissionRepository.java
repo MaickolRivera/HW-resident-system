@@ -8,6 +8,6 @@ import java.util.UUID;
 public interface AccessPermissionRepository {
     AccessPermission save(AccessPermission permission);
     Optional<AccessPermission> findById(UUID id);
-    List<AccessPermission> findByVisitorId(UUID visitorId);
+    List<AccessPermission> findByExternalId(UUID externalId);
     List<AccessPermission> findAll();
 }

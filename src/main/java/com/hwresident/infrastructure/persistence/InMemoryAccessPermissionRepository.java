@@ -2,36 +2,39 @@ package com.hwresident.infrastructure.persistence;
 
 import com.hwresident.domain.model.AccessPermission;
 import com.hwresident.domain.repository.AccessPermissionRepository;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class InMemoryAccessPermissionRepository implements AccessPermissionRepository {
-    private final Map<UUID, AccessPermission> store = new LinkedHashMap<>();
+public class InMemoryAccessPermissionRepository extends InMemoryRepository<AccessPermission>
+        implements AccessPermissionRepository {
+
+    public InMemoryAccessPermissionRepository() {
+        super();
+    }
+
+    public InMemoryAccessPermissionRepository(Map<UUID, AccessPermission> store, Runnable onChange) {
+        super(store, onChange);
+    }
 
     @Override
     public AccessPermission save(AccessPermission permission) {
-        store.put(permission.id(), permission);
-        return permission;
+        return put(permission.id(), permission);
     }
 
     @Override
     public Optional<AccessPermission> findById(UUID id) {
-        return Optional.ofNullable(store.get(id));
+        return get(id);
     }
 
     @Override
-    public List<AccessPermission> findByVisitorId(UUID visitorId) {
-        return store.values().stream()
-                .filter(p -> p.visitorId().equals(visitorId))
-                .toList();
+    public List<AccessPermission> findByExternalId(UUID externalId) {
+        return values().stream().filter(p -> p.externalId().equals(externalId)).toList();
     }
 
     @Override
     public List<AccessPermission> findAll() {
-        return new ArrayList<>(store.values());
+        return values();
     }
 }

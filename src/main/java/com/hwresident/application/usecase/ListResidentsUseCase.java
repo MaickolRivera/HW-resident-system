@@ -1,17 +1,17 @@
 package com.hwresident.application.usecase;
 
 import com.hwresident.domain.model.Resident;
-import com.hwresident.domain.repository.ResidentRepository;
+import com.hwresident.domain.repository.PersonRepository;
 import java.util.List;
 
 public class ListResidentsUseCase {
-    private final ResidentRepository residents;
+    private final PersonRepository persons;
 
-    public ListResidentsUseCase(ResidentRepository residents) {
-        this.residents = residents;
+    public ListResidentsUseCase(PersonRepository persons) {
+        this.persons = persons;
     }
 
     public List<Resident> execute() {
-        return residents.findAll();
+        return persons.findAllOfType(Resident.class);
     }
 }

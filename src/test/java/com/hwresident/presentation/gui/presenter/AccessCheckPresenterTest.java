@@ -5,13 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.hwresident.TestData;
 import com.hwresident.application.usecase.CheckAccessUseCase;
-import com.hwresident.application.usecase.GrantAccessPermissionUseCase;
-import com.hwresident.application.usecase.RegisterResidentUseCase;
-import com.hwresident.application.usecase.RegisterVisitorUseCase;
-import com.hwresident.infrastructure.persistence.InMemoryAccessPermissionRepository;
-import com.hwresident.infrastructure.persistence.InMemoryResidentRepository;
-import com.hwresident.infrastructure.persistence.InMemoryVisitorRepository;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,15 +33,10 @@ class AccessCheckPresenterTest {
 
     @BeforeEach
     void setUp() {
-        var residents = new InMemoryResidentRepository();
-        var visitors = new InMemoryVisitorRepository();
-        var permissions = new InMemoryAccessPermissionRepository();
-        new RegisterResidentUseCase(residents).execute("Ana Pérez", "123", "101");
-        new RegisterVisitorUseCase(visitors).execute("Carlos Ruiz", "987");
-        new GrantAccessPermissionUseCase(residents, visitors, permissions).execute("123", "987", FROM, UNTIL);
-
+        var data = new TestData();
+        data.grant().execute("123", "987", FROM, UNTIL);
         view = new FakeView();
-        presenter = new AccessCheckPresenter(view, new CheckAccessUseCase(visitors, permissions));
+        presenter = new AccessCheckPresenter(view, new CheckAccessUseCase(data.persons, data.permissions));
     }
 
     @Test

@@ -1,20 +1,17 @@
 package com.hwresident.application.usecase;
 
-import com.hwresident.domain.exception.DomainException;
 import com.hwresident.domain.model.Visitor;
-import com.hwresident.domain.repository.VisitorRepository;
+import com.hwresident.domain.repository.PersonRepository;
 
 public class RegisterVisitorUseCase {
-    private final VisitorRepository visitors;
+    private final PersonRepository persons;
 
-    public RegisterVisitorUseCase(VisitorRepository visitors) {
-        this.visitors = visitors;
+    public RegisterVisitorUseCase(PersonRepository persons) {
+        this.persons = persons;
     }
 
     public Visitor execute(String fullName, String documentNumber) {
-        if (visitors.findByDocumentNumber(documentNumber).isPresent()) {
-            throw new DomainException("Ya existe un visitante con ese documento");
-        }
-        return visitors.save(Visitor.create(fullName, documentNumber));
+        var doc = Documents.ensureAvailable(persons, documentNumber);
+        return persons.save(Visitor.create(fullName, doc));
     }
 }
